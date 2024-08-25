@@ -1,32 +1,43 @@
+// server.js
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
-const cors = require('cors');  // Import the cors package
 
 const app = express();
+const port = 5000;
 
+// Middleware
+app.use(cors());
 app.use(bodyParser.json());
-app.use(cors());  // Use the cors middleware
+
+// Sample user details
+const userId = 'john_doe_17091999';
+const email = 'john@xyz.com';
+const rollNumber = 'ABCD123';
 
 // POST /bfhl endpoint
 app.post('/bfhl', (req, res) => {
     const { data } = req.body;
-    const user_id = "john_doe_17091999";  // This should be dynamically generated
-    const email = "john@xyz.com";
-    const roll_number = "ABCD123";
+    if (!Array.isArray(data)) {
+        return res.status(400).json({ is_success: false, error: 'Invalid data format' });
+    }
 
+    // Process input data
     const numbers = data.filter(item => !isNaN(item));
     const alphabets = data.filter(item => isNaN(item));
-    const lowercase_alphabets = data.filter(item => /^[a-z]$/.test(item));
-    const highest_lowercase_alphabet = lowercase_alphabets.length ? [Math.max(...lowercase_alphabets)] : [];
+    const lowercaseAlphabets = alphabets.filter(item => item === item.toLowerCase());
+    const highestLowercaseAlphabet = lowercaseAlphabets.length > 0 
+        ? [lowercaseAlphabets.reduce((a, b) => (a > b ? a : b))] 
+        : [];
 
     res.json({
         is_success: true,
-        user_id,
+        user_id: userId,
         email,
-        roll_number,
+        roll_number: rollNumber,
         numbers,
         alphabets,
-        highest_lowercase_alphabet
+        highest_lowercase_alphabet: highestLowercaseAlphabet
     });
 });
 
@@ -35,8 +46,6 @@ app.get('/bfhl', (req, res) => {
     res.json({ operation_code: 1 });
 });
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
